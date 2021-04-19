@@ -1,0 +1,298 @@
+---
+title: "IPAM"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE, cache = TRUE, fig.width=6, fig.asp=.618, out.width='70%', fig.align='center')
+library(tidyverse)
+library(ggplot2)
+library(stringr)
+library(readxl)
+library(lubridate)
+library(lsmeans)
+library(kableExtra)
+library(knitr)
+library(fitdistrplus)
+library(devtools)
+library(zoo)
+library(devtools)
+```
+
+```{r laod frag info, include=FALSE }
+fragID <- read.csv("metadata.csv")
+```
+
+```{r define functions, include=FALSE}
+checkAOI <- function(key, value){
+  as.data.frame(cbind(table(key$file), table(value$file))) %>%
+  rownames_to_column('File') %>%
+  mutate(File=as.numeric(File)) %>%
+  dplyr::select(File, 'key'=V1, 'values'=V2) %>%
+  filter(key!=values)
+}
+```
+
+```{r Ipam 1, include=FALSE}
+#Date of session
+date="2021-02-11"
+#Ipam session number
+number=1
+#devtools::source_url("https://raw.githubusercontent.com/jrcunning/IPAM2R/master/R/import_ipam.R")
+
+devtools::source_url("https://raw.githubusercontent.com/jrcunning/IPAM2R/master/R/import_ipam.R")
+
+iPamValues <- import_ipam(dir = "~/Documents/MS Degree/Enochs/IPAM/021121/", ipam.pattern = '*.csv',
+                            info.pattern = NULL)
+genotypes <- read_xlsx("021121/IPAM1.xlsx")
+
+genotypes$file <- as.character(genotypes$Picture)
+
+
+combineIpam <- merge(genotypes, iPamValues, by=c('file', 'AOI'))
+combineIpam$Date <- ymd(date)
+combineIpam<- left_join(combineIpam, fragID, by=c('Coral.ID', 'Tank'))
+combineIpam$Timepoint <- number
+
+
+# Mean YII for genotype
+combineIpam <- combineIpam %>%
+  group_by(`Genotype`) %>%
+  mutate(Ymean = mean(Y))
+```
+
+```{r Ipam 2, include=FALSE}
+#Date of session
+date="2021-02-18"
+#Ipam session number
+number=2
+
+iPam2Values <- import_ipam(dir = "~/Documents/MS Degree/Enochs/IPAM//021821", ipam.pattern = '*.csv',
+                            info.pattern = NULL)
+genotypes <- read_xlsx("021821/IPAM2.xlsx")
+
+genotypes$file <- as.character(genotypes$Picture)
+
+
+combine2Ipam <- merge(genotypes, iPam2Values, by=c('file', 'AOI'))
+combine2Ipam$Date <- ymd(date)
+combine2Ipam<- left_join(combine2Ipam, fragID, by=c('Coral.ID', 'Tank'))
+combine2Ipam$Timepoint <- number
+
+# Mean YII for genotype
+combine2Ipam <- combine2Ipam %>%
+  group_by(`Genotype`) %>%
+  mutate(Ymean = mean(Y))
+```
+
+```{r IPAM 3, include=FALSE}
+#Date of session
+date="2021-02-23"
+#Ipam session number
+number=3
+
+iPam3Values <- import_ipam(dir = "~/Documents/MS Degree/Enochs/IPAM//022321/", ipam.pattern = '*.csv',
+                            info.pattern = NULL)
+genotypes <- read_xlsx("022321/IPAM3.xlsx")
+
+genotypes$file <- as.character(genotypes$Picture)
+
+
+combine3Ipam <- merge(genotypes, iPam3Values, by=c('file', 'AOI'))
+combine3Ipam$Date <- ymd(date)
+combine3Ipam<- left_join(combine3Ipam, fragID, by=c('Coral.ID', 'Tank'))
+combine3Ipam$Timepoint <- number
+
+# Mean YII for genotype
+combine3Ipam <- combine3Ipam %>%
+  group_by(`Genotype`) %>%
+  mutate(Ymean = mean(Y))
+```
+
+```{r IPAM 4, include=FALSE}
+#Date of session
+date="2021-02-25"
+#Ipam session number
+number=4
+
+iPam4Values <- import_ipam(dir = "~/Documents/MS Degree/Enochs/IPAM//022521/", ipam.pattern = '*.csv',
+                            info.pattern = NULL)
+genotypes <- read_xlsx("022521/IPAM4.xlsx")
+
+genotypes$file <- as.character(genotypes$Picture)
+
+
+combine4Ipam <- merge(genotypes, iPam4Values, by=c('file', 'AOI'))
+combine4Ipam$Date <- ymd(date)
+combine4Ipam<- left_join(combine4Ipam, fragID, by=c('Coral.ID', 'Tank'))
+combine4Ipam$Timepoint <- number
+
+# Mean YII for genotype
+combine4Ipam <- combine4Ipam %>%
+  group_by(`Genotype`) %>%
+  mutate(Ymean = mean(Y))
+```
+
+```{r IPAM 5, include=FALSE}
+#Date of session
+date="2021-03-02"
+#Ipam session number
+number=5
+
+iPam5Values <- import_ipam(dir = "~/Documents/MS Degree/Enochs/IPAM/030221/", ipam.pattern = '*.csv',
+                            info.pattern = NULL)
+genotypes <- read_xlsx("030221/IPAM5.xlsx")
+
+genotypes$file <- as.character(genotypes$Picture)
+
+
+combine5Ipam <- merge(genotypes, iPam5Values, by=c('file', 'AOI'))
+combine5Ipam$Date <- ymd(date)
+combine5Ipam<- left_join(combine5Ipam, fragID, by=c('Coral.ID', 'Tank'))
+combine5Ipam$Timepoint <- number
+
+# Mean YII for genotype
+combine5Ipam <- combine5Ipam %>%
+  group_by(`Genotype`) %>%
+  mutate(Ymean = mean(Y))
+```
+
+```{r IPAM 6, include=FALSE}
+#Date of session
+date="2021-03-04"
+#Ipam session number
+number=6
+
+iPam6Values <- import_ipam(dir = "~/Documents/MS Degree/Enochs/IPAM/030421/", ipam.pattern = '*.csv',
+                            info.pattern = NULL)
+genotypes <- read_xlsx("030421/IPAM6.xlsx")
+
+genotypes$file <- as.character(genotypes$Picture)
+
+
+combine6Ipam <- merge(genotypes, iPam6Values, by=c('file', 'AOI'))
+combine6Ipam$Date <- ymd(date)
+combine6Ipam<- left_join(combine6Ipam, fragID, by=c('Coral.ID', 'Tank'))
+combine6Ipam$Timepoint <- number
+
+# Mean YII for genotype
+combine6Ipam <- combine6Ipam %>%
+  group_by(`Genotype`) %>%
+  mutate(Ymean = mean(Y))
+```
+
+```{r IPAM 7, include=FALSE}
+#Date of session
+date="2021-03-09"
+#Ipam session number
+number=7
+
+iPam7Values <- import_ipam(dir = "~/Documents/MS Degree/Enochs/IPAM/030921/", ipam.pattern = '*.csv',
+                            info.pattern = NULL)
+genotypes <- read_xlsx("030921/IPAM7.xlsx")
+
+genotypes$file <- as.character(genotypes$Picture)
+
+
+combine7Ipam <- merge(genotypes, iPam7Values, by=c('file', 'AOI'))
+combine7Ipam$Date <- ymd(date)
+combine7Ipam<- left_join(combine7Ipam, fragID, by=c('Coral.ID', 'Tank'))
+combine7Ipam$Timepoint <- number
+
+# Mean YII for genotype
+combine7Ipam <- combine7Ipam %>%
+  group_by(`Genotype`) %>%
+  mutate(Ymean = mean(Y))
+```
+
+```{r IPAM8, include=FALSE}
+#Date of session
+date="2021-03-16"
+#Ipam session number
+number=8
+
+iPam8Values <- import_ipam(dir = "~/Documents/MS Degree/Enochs/IPAM/031621/", ipam.pattern = '*.csv',
+                            info.pattern = NULL)
+genotypes <- read_xlsx("031621/IPAM8.xlsx")
+
+genotypes$file <- as.character(genotypes$Picture)
+
+
+combine8Ipam <- merge(genotypes, iPam8Values, by=c('file', 'AOI'))
+combine8Ipam$Date <- ymd(date)
+combine8Ipam<- left_join(combine8Ipam, fragID, by=c('Coral.ID', 'Tank'))
+combine8Ipam$Timepoint <- number
+
+# Mean YII for genotype
+combine8Ipam <- combine8Ipam %>%
+  group_by(`Genotype`) %>%
+  mutate(Ymean = mean(Y))
+```
+
+```{r IPAM9, inlcude=FALSE}
+#Date of session
+date="2021-03-18"
+#Ipam session number
+number=9
+
+iPam9Values <- import_ipam(dir = "~/Documents/MS Degree/Enochs/IPAM/031821/", ipam.pattern = '*.csv',
+                            info.pattern = NULL)
+genotypes <- read_xlsx("031821/IPAM9.xlsx")
+
+genotypes$file <- as.character(genotypes$Picture)
+
+
+combine9Ipam <- merge(genotypes, iPam9Values, by=c('file', 'AOI'))
+combine9Ipam$Date <- ymd(date)
+combine9Ipam<- left_join(combine9Ipam, fragID, by=c('Coral.ID', 'Tank'))
+combine9Ipam$Timepoint <- number
+
+# Mean YII for genotype
+combine9Ipam <- combine9Ipam %>%
+  group_by(`Genotype`) %>%
+  mutate(Ymean = mean(Y))
+```
+
+```{r combine all IPAM timepoints, include=FALSE}
+allIpam <- rbind(combineIpam, combine2Ipam, combine3Ipam, combine4Ipam, combine5Ipam, combine6Ipam, combine7Ipam, combine8Ipam, combine9Ipam)
+allIpam$Timepoint <- as.factor(allIpam$Timepoint)
+allIpam$speciesGeno <- as.factor(allIpam$Genotype)
+```
+
+```{r normalize YII, include=FALSE}
+ynorm <- allIpam %>%
+  mutate(days=as.numeric(Date-mdy('2/11/2021'))) %>%
+  group_by(Coral.ID) %>%
+  arrange(Date) %>%
+  mutate(Yinit=Y[1], rY=Y/Y[1]) %>% 
+  ungroup()
+  
+```
+
+```{r Exploratory plots, echo=FALSE}
+p <- allIpam %>%
+  ggplot(aes(Timepoint, Ymean)) +
+  geom_point(aes(color=Genotype), alpha=0.2) +
+  facet_grid(~Treatment)+
+  theme(legend.position = 'none') + 
+  ylim(c(0.55,0.76)) +
+  xlab("IPAM Timepoint") + ylab("YII")
+p
+
+```
+
+
+```{r}
+allIpam %>%
+  group_by(Treatment, Timepoint) %>%
+  summarize(Y_mean=mean(Ymean), Y_sd=sd(Ymean))
+
+```
+
+```{r}
+ggplot(allIpam,aes(x=Timepoint,y=Y,color=Treatment))+geom_boxplot()+theme_classic()
+```
+

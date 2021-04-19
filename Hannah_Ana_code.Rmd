@@ -1,0 +1,178 @@
+---
+title: "Import IPAM data"
+author: "Ana Palacio-Castro"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+      toc: true
+      df_print: paged
+      theme: united
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE, fig.width=7, fig.height=7 )
+```
+
+# General project set-up 
+
+```{r libraries, results="hide"}
+
+# Get all libraries and sources required to run the script
+
+library(dplyr)
+library(plyr)
+library(reshape2)
+library(ggplot2)
+library(ggthemes)
+
+# These are options for how I like to make my plots, but your taste can be different
+
+theme_set (theme_classic() + theme(panel.grid.major = element_blank(),
+                              panel.grid.minor = element_blank(), 
+                              axis.line = element_line(colour = "black"),
+                              legend.position="none",
+                              axis.text.x = element_text(angle = 90, vjust = 0.5),
+                              plot.title = element_text(size=12, face="bold"),
+                              #panel.border = element_rect(colour = "black", fill=NA, size=1)
+                              panel.border = element_blank()
+                              ))
+```
+
+# Get your data!
+
+```{r}
+
+# 1. Import the funtion:
+    devtools::source_url(
+    "https://raw.githubusercontent.com/anampc/ImaginPAM-Import/master/R/1.IPAM_Import_Function.R")
+
+# 2. Run function with your data: 
+    YII<-Import_YII("data") # "data" is the name of my folder (dir) containing the .csv files
+
+# 3.Get the sample information from the file path
+    file.picture <- plyr::rbind.fill(lapply(strsplit(as.character(YII$filename), split="/"), 
+                                            function(X) data.frame(t(X))))
+    colnames(file.picture) <- c("Folder", "Date", "File")
+    
+    YII <- cbind(file.picture[,-1], YII[,-1])
+
+# 4.Convert your folder names to match date style 
+    YII$Date<-as.Date(YII$Date, "%m%d%y")
+    
+# 5. Import your metadata:
+    ID_AOI<-read.csv("IPAMmeta.csv")
+    # This is a file that you should create, containing the filename and area of interest
+    # that correspond to each one of your samples
+    # The SubFolder column is not required if you do not have your .csv files in subfolders
+    ID_AOI$Date<-as.Date(ID_AOI$Date, "%m/%d/%y")
+    ID_AOI$File<-paste(ID_AOI$Picture, ".csv", sep = "")
+    ID_AOI$variable<-paste("Y.II.",ID_AOI$AOI, sep = "")
+    
+# 6. Merge YII and sample information
+    # Remove "SubFolder"from the next line if all your data is in one folder
+    YII.data<-plyr::join(ID_AOI, YII, by =c("Date", "File", "variable"), type="inner")
+
+#7. Select the information of interest and rename your columns
+    YII.data<-dplyr::select(YII.data, Date, Tank, Coral.ID, Genotype, Treatment, value)
+    colnames(YII.data) <- c("Date","Tank", "Coral.ID", "Genotype", "Treatment", "YII")
+
+    summary(YII.data)
+```
+
+# 2. Data clean-up an types: 
+  
+```{r}  
+  # Variable types 
+    YII.data$Date<-as.Date(YII.data$Date, "%Y-%m-%d")
+    #YII.data$Days<-(as.numeric(YII.data$Date)-18486)
+  
+  # Check YII values = 0  
+    Error0 <- YII.data[which (YII.data$YII==0), ]
+    YII.data <- droplevels(YII.data[!rownames(YII.data) %in%
+                                        rownames(Error0), ])
+  # Treatments
+    YII.data$Treatment<-factor(YII.data$Treatment, 
+                             levels= c("L", "H"), ordered=TRUE)
+    
+  # Replicates (Tanks)
+    YII.data$Tank<-factor(YII.data$Tank, ordered=FALSE)
+    YII.data$Genotype<-factor(YII.data$Genotype, ordered=FALSE)
+  
+  summary(YII.data)
+```
+
+# Data exploration
+
+## Genotype
+
+```{r}
+# Genotype + Treatment
+
+YII_Genet<- ggplot(YII.data, aes (Date, YII, colour=factor(Treatment))) +
+  stat_summary(fun.data = "mean_cl_boot",geom = "errorbar", width = 0.2 )+
+  stat_summary(fun.y=mean, geom="line") + 
+  stat_summary(fun.y=mean, geom="point") +
+  geom_jitter(alpha=0.2)+
+  theme(legend.position = "bottom")+
+  scale_y_continuous(limits = c(0.4, .76),
+                         breaks = seq(0, 0.7,0.1),  
+                         expand = c(0.01, 0.01),
+                         name=("YII (Fv/Fm)"))
+YII_Genet+ facet_wrap(~Genotype)
+```
+
+## Tank
+
+```{r}
+# Tank 
+
+YII_Tank2<- ggplot(YII.data, aes (Date, YII, colour=(Tank))) + 
+  stat_summary(fun.data = "mean_cl_boot",geom = "errorbar", width = 0.2 )+
+  stat_summary(fun.y=mean, geom="line") + 
+     scale_y_continuous(limits = c(0.4, .76),
+                         breaks = seq(0, 0.7,0.1),  
+                         expand = c(0, 0),
+                         name=("YII (Fv/Fm)"))+
+  geom_jitter(alpha=0.2)+
+  
+  theme(legend.position="bottom",
+        legend.title = element_blank(), 
+        strip.background =element_rect(fill=NA)) 
+YII_Tank2+facet_wrap(~Treatment)
+
+```
+
+## Fragment
+
+```{r}
+# Option1
+YII_Frag<- ggplot(YII.data, aes (Date, YII, group=(Coral.ID),
+                                    colour=factor(Treatment))) + 
+      geom_line()+
+      
+     scale_y_continuous(limits = c(0.4, .76),
+                         breaks = seq(0, 0.7,0.2),  
+                         expand = c(0, 0),
+                         name=("YII (Fv/Fm)"))+
+    
+    theme(legend.position="bottom",
+        legend.title = element_blank(), 
+        strip.background =element_rect(fill=NA)) 
+YII_Frag+facet_wrap(~Genotype)
+
+# Option2
+YII_Frag1 <- ggplot(YII.data, aes (Date, YII, group=(Coral.ID),
+                                    colour=factor(Genotype))) + 
+      geom_line()+
+     scale_y_continuous(limits = c(0.4, .76),
+                         breaks = seq(0, 0.7,0.2),  
+                         expand = c(0, 0),
+                         name=("YII (Fv/Fm)"))+
+    
+    theme(legend.position="bottom",
+        legend.title = element_blank(), 
+        strip.background =element_rect(fill=NA)) 
+YII_Frag1+facet_wrap(~Tank)
+```
+
