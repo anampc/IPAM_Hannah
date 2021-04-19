@@ -104,6 +104,24 @@ theme_set (theme_classic() + theme(panel.grid.major = element_blank(),
 
 # Data exploration
 
+## Treatment
+
+```{r}
+# Genotype + Treatment
+
+YII_Treatment<- ggplot(YII.data, aes (Date, YII, colour=factor(Treatment))) +
+  stat_summary(fun.data = "mean_cl_boot",geom = "errorbar", width = 0.2 )+
+  stat_summary(fun.y=mean, geom="line") + 
+  stat_summary(fun.y=mean, geom="point") +
+  #geom_jitter(aes(colour=Genotype), alpha=0.2)+
+  theme(legend.position = "bottom")+
+  scale_y_continuous(limits = c(0.4, .76),
+                         breaks = seq(0, 0.7,0.1),  
+                         expand = c(0.01, 0.01),
+                         name=("YII (Fv/Fm)"))
+YII_Treatment
+```
+
 ## Genotype
 
 ```{r}
